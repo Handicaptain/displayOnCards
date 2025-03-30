@@ -1,0 +1,31 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<h2 class="text-center">User Details</h2>
+
+<div class="container">
+    <div class="row">
+        @foreach (var user in Model.Users)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Username: @user.Username</h5>
+                        <p class="card-text"><strong>User ID:</strong> @user.UserID</p>
+                        <p class="card-text"><strong>Name:</strong> @user.Name</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (!Model.Users.Any())
+{
+    <div class="alert alert-warning text-center">
+        No users found in the database.
+    </div>
+}
