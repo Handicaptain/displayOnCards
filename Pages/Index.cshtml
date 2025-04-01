@@ -3,8 +3,15 @@
 @{
     ViewData["Title"] = "User Details";
 }
+<form method="post" asp-page-handler = "OnPost">
+
 
 <h2 class="text-center">User Details</h2>
+
+    <select asp-for="SelectedUser" asp-items="Model.UserOptions" onchange="this.form.submit();" class="dropdown">
+    <option value="">Filters</option>
+</select>
+
 
 <div class="container">
     <div class="row">
@@ -23,9 +30,11 @@
     </div>
 </div>
 
-@if (!Model.Users.Any())
+</form>
+
+@* @if (!Model.Users.Any())
 {
     <div class="alert alert-warning text-center">
         No users found in the database.
     </div>
-}
+} *@
