@@ -1,25 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
 
 namespace displayOnCards.Pages
 {
     public class IndexModel : PageModel
     {
-        //public void apply1882()
-        //{
-        //    string newQuery = "SELECT * FROM tblUsers WHERE userID = 1882;";
-        //}
-
-        //public void apply1883()
-        //{
-        //    string newQuery = "SELECT * FROM tblUsers WHERE userID = 1883;";
-        //}
-
         private readonly IConfiguration _configuration;
 
         public IndexModel(IConfiguration configuration)
@@ -28,147 +18,81 @@ namespace displayOnCards.Pages
         }
 
         [BindProperty]
-        public string SelectedUser { get; set; }
-        public List<SelectListItem> UserOptions { get; set; }
+        public string SelectedCategory { get; set; }
+        public List<SelectListItem> ListOfCategories { get; set; } = new List<SelectListItem>();
+        public List<Product> Products { get; set; } = new List<Product>();
 
-        public List<User> Users { get; set; } = new List<User>();
-
-        public List<User> FilterUsers(List<User> users, string selectedUser)
+        public void OnGet(string productCategory = "")
         {
-            if (String.IsNullOrEmpty(selectedUser))
-            {
-                return users;
-            }
-            return users.Where(u => u.UserID == selectedUser).ToList();
+            var allProducts = GetProductsSQLVersion();
+
+            PopulateProductsSelectListItems(allProducts);
+
+            Products = string.IsNullOrEmpty(productCategory) ? allProducts : allProducts.Where(p => p.productCategory == productCategory).ToList();
+
+            SelectedCategory = productCategory;
         }
-
-        //public List<User> FilterUsersSQLVersion(string selectedUser)
-        //{
-        //    string connectionString = _configuration.GetConnectionString("DefaultConnection");
-
-        //    using (SqlConnection connection = new SqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-        //        string query = @"SELECT * FROM tblUsers WHERE UserId = @UserId";
-
-        //        using (SqlCommand command = new SqlCommand(query, connection))
-        //        {
-        //            command.Parameters.AddWithValue("@UserId", selectedUser);
-
-        //            SqlDataReader reader = command.ExecuteReader();
-        //            while (reader.Read())
-        //            {
-        //                Users.Add(new User
-        //                {
-        //                    UserID = reader["userID"].ToString(),
-        //                    Username = reader["username"].ToString(),
-        //                    Name = reader["name"].ToString()
-        //                });
-        //            }
-        //        }
-        //    }
-        //    return Users.ToList();
-        //}
 
         public IActionResult OnPost()
         {
-            return RedirectToPage("Index", new { userID = SelectedUser });
+            var allProducts = GetProductsSQLVersion();
+
+            PopulateProductsSelectListItems(allProducts);
+
+            Products = string.IsNullOrEmpty(SelectedCategory) ? allProducts : allProducts.Where(p => p.productCategory == SelectedCategory).ToList();
+
+            return Page(); 
         }
 
-        public IActionResult OnGet(string userID = "")
+        private void PopulateProductsSelectListItems(List<Product> products)
         {
-            Users = GetUsers();
-            //Users = GetUsersSQLVersion();
-
-            PopulateUsersSelectListItems(Users);
-
-            Users = FilterUsers(Users, userID);
-            //Users = FilterUsersSQLVersion(userID);
-
-            return Page();
-        }
-
-        public List<SelectListItem> PopulateUsersSelectListItems(List<User> users)
-        {
-            UserOptions = Users.Distinct().Select(a =>
-                new SelectListItem
+            ListOfCategories = products.Select(p => p.productCategory).Distinct()
+                .Select(category => new SelectListItem
                 {
-                    Value = a.UserID,
-                    Text = a.UserID,
+                    Value = category,
+                    Text = category
                 }).ToList();
 
-            UserOptions.Insert(0, new SelectListItem { Value = "", Text = "all" });
-
-            return UserOptions;
         }
 
-        public List<User> GetUsers()
-        {
-            List<User> users = new List<User>();
-            users.Add(new User
-            {
-                UserID = "1883",
-                Username = "username1",
-                Name = "Brian"
-            });
-            users.Add(new User
-            {
-                UserID = "1881",
-                Username = "username2",
-                Name = "Paul"
-            });
-            users.Add(new User
-            {
-                UserID = "1882",
-                Username = "username3",
-                Name = "Gary"
-            });
-            users.Add(new User
-            {
-                UserID = "1883",
-                Username = "username4",
-                Name = "John"
-            });
-
-            return users;
-        }
-
-        public List<User> GetUsersSQLVersion()
+        private List<Product> GetProductsSQLVersion()
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            var productList = new List<Product>();
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                string query = "SELECT * FROM tblUsers";
+                string query = "SELECT * FROM tblProducts";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read())
                     {
-                        Users.Add(new User
+                        productList.Add(new Product
                         {
-                            UserID = reader["userID"].ToString(),
-                            Username = reader["username"].ToString(),
-                            Name = reader["name"].ToString()
+                            productID = Convert.ToInt32(reader["productID"]),
+                            productName = reader["productName"].ToString(),
+                            productDescription = reader["productDescription"].ToString(),
+                            productPrice = Convert.ToDecimal(reader["productPrice"]),
+                            productCategory = reader["productCategory"].ToString(),
+                            productIsFeatured = Convert.ToBoolean(reader["productIsFeatured"])
                         });
                     }
                 }
             }
-
-            return Users.ToList();
+            return productList;
         }
-
-        
     }
 
-    
-
-    public class User
+    public class Product
     {
-        public string UserID { get; set; }
-        public string Username { get; set; }
-        public string Name { get; set; }
+        public int productID { get; set; }
+        public string productName { get; set; }
+        public string productDescription { get; set; }
+        public decimal productPrice { get; set; }
+        public string productCategory { get; set; }
+        public bool productIsFeatured { get; set; }
     }
 }

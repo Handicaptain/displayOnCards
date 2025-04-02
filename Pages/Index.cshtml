@@ -3,34 +3,32 @@
 @{
     ViewData["Title"] = "User Details";
 }
-<form method="post" asp-page-handler = "OnPost">
+<form method="post">
+    <h2 class="text-center">Product Details</h2>
 
+    <select asp-for="SelectedCategory" asp-items="Model.ListOfCategories" onchange="this.form.submit();" class="dropdown mb-5">
+        <option value="">All</option>
+    </select>
 
-<h2 class="text-center">User Details</h2>
-
-    <select asp-for="SelectedUser" asp-items="Model.UserOptions" onchange="this.form.submit();" class="dropdown">
-    <option value="">Filters</option>
-</select>
-
-
-<div class="container">
-    <div class="row">
-        @foreach (var user in Model.Users)
-        {
-            <div class="col-md-4">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Username: @user.Username</h5>
-                        <p class="card-text"><strong>User ID:</strong> @user.UserID</p>
-                        <p class="card-text"><strong>Name:</strong> @user.Name</p>
+    <div class="container">
+        <div class="row">
+            @foreach (var product in Model.Products)
+            {
+                <div class="col-md-4">
+                    <div class="card shadow-sm mb-4" style="background-color: #93C47D">
+                        <div class="card-body">
+                            <h5 class="card-title">@product.productName</h5>
+                            <p class="card-text">@product.productCategory</p>
+                            <p class="card-text">@product.productDescription</p>
+                            <p class="card-text">@product.productPrice</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     </div>
-</div>
-
 </form>
+
 
 @* @if (!Model.Users.Any())
 {
