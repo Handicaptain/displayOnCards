@@ -43,7 +43,6 @@ namespace displayOnCards.Pages
 
             return Page(); 
         }
-
         private void PopulateProductsSelectListItems(List<Product> products)
         {
             ListOfCategories = products.Select(p => p.productCategory).Distinct()
